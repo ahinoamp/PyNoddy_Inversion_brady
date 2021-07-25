@@ -1,0 +1,27 @@
+num events 19
+dimensions 76 78 26
+offset scale -1125.000000 -1125.000000 175.000000 150.000000
+0 0
+1 2
+2 2
+3 2
+4 2
+5 2
+6 2
+7 2
+8 2
+9 2
+10 2
+11 2
+12 2
+13 2
+14 2
+15 2
+16 2
+17 2
+18 2
+1 0 Sed 204 234 102
+2 0 Mafic 214 157 84
+3 0 Felsic 166 60 198
+4 0 Intrusive 41 247 110
+Strat	Fault0	Fault1	Fault2	Fault3	Fault4	Fault5	Fault6	Fault7	Fault8	Fault9	Fault10	Fault11	Fault12	Fault13	Fault14	Fault15	Fault16	Fault17	

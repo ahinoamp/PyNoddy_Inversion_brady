@@ -1,0 +1,30 @@
+num events 19
+dimensions 74 76 26
+offset scale -1125.000000 -1125.000000 175.000000 150.000000
+0 0
+1 8
+2 6
+3 6
+4 6
+5 2
+6 2
+7 2
+8 2
+9 2
+10 2
+11 2
+12 2
+13 2
+14 2
+15 2
+16 2
+17 2
+18 2
+1 0 Sed 34 225 69
+2 0 Mafic 105 97 178
+3 0 Felsic 162 127 205
+4 0 Intrusive 147 199 220
+5 2 Gabbro 216 255 0
+6 3 Gabbro 216 255 0
+7 4 Gabbro 216 255 0
+Strat	Tilt	Plug	Plug	Plug	Fault9_MidMid_0	Fault12_MidMid_1	Fault14_SouthMid_2	Fault29_MidWest_3	Fault56_NorthEast_4	Fault63_MidEast_5	Fault81_NorthMid_6	Fault83_NorthWest_7	Fault96_MidWest_8	Fault114_NorthWest_9	Fault119_NorthEast_10	Fault6_SouthWest_11	Fault32_MidEast_12	Fault24_SouthEast_13	

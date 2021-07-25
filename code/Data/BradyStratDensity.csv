@@ -1,0 +1,6 @@
+Unit,density(kg/m3),thickness(m)
+QuaternarySeds,1900, 15
+TertiarySeds, 2250, 300
+MioceneVolc, 2200,800
+OligoceneVolc, 2700, 200
+Basement, 2600, 2000 
