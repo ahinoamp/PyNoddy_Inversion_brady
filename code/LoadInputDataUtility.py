@@ -12,7 +12,7 @@ def loadData(P):
 
     #Gravity observations
     ########################
-    ObsData = pd.read_csv('Data/GravityData.csv')
+    ObsData = pd.read_csv('Data/BradyCBA.csv')
     filterLimits =  ((ObsData['X']>P['xmin']) & (ObsData['Y']>P['ymin'])   
                      & (ObsData['X']<(P['xmax'])) 
                      & (ObsData['Y']<(P['ymax']))) 
@@ -22,45 +22,45 @@ def loadData(P):
     
     P['Grav']['xObs'] = ObsData['X'].values
     P['Grav']['yObs'] = ObsData['Y'].values
-    P['Grav']['Obs'] = ObsData['CBA_240'].values
+    P['Grav']['Obs'] = ObsData['CBA'].values
     P['Grav']['medianObs'] = np.median(P['Grav']['Obs'])
     P['Grav']['stdObs'] = np.std(P['Grav']['Obs'])
     P['Grav']['nObsPoints'] = len(P['Grav']['Obs'])
 
     #Granite top observations
     P['GT'] = {}
-    GraniteTopObs = pd.read_csv('Data/GraniteTop.csv')
-    P['GT']['xObs'] = GraniteTopObs['X'].values
-    P['GT']['yObs'] = GraniteTopObs['Y'].values
-    P['GT']['Obs'] = GraniteTopObs['Z'].values
+    GraniteTopObs = pd.read_csv('Data/BradyTopBasement.csv')
+    P['GT']['xObs'] = GraniteTopObs['x'].values
+    P['GT']['yObs'] = GraniteTopObs['y'].values
+    P['GT']['Obs'] = GraniteTopObs['z'].values
     P['GT']['nObsPoints'] = len(P['GT']['Obs'])
 
     #Magnetics observations
-    P['Mag'] = {}
-    MagneticsObs = pd.read_csv('Data/Magnetics.csv')
-    filterLimits =  ((MagneticsObs['X']>P['xmin']) 
-                     & (MagneticsObs['Y']>P['ymin'])   
-                     & (MagneticsObs['X']<(P['xmax'])) 
-                     & (MagneticsObs['Y']<(P['ymax']))) 
-    MagneticsObs = MagneticsObs[filterLimits]
+    # P['Mag'] = {}
+    # MagneticsObs = pd.read_csv('Data/Magnetics.csv')
+    # filterLimits =  ((MagneticsObs['X']>P['xmin']) 
+    #                  & (MagneticsObs['Y']>P['ymin'])   
+    #                  & (MagneticsObs['X']<(P['xmax'])) 
+    #                  & (MagneticsObs['Y']<(P['ymax']))) 
+    # MagneticsObs = MagneticsObs[filterLimits]
 
-    P['Mag']['xObs'] = MagneticsObs['X'].values
-    P['Mag']['yObs'] = MagneticsObs['Y'].values
-    P['Mag']['Obs'] = MagneticsObs['VALUE'].values
-    P['Mag']['nObsPoints'] = len(P['Mag']['Obs'])
-    P['Mag']['medianObs'] = np.median(P['Mag']['Obs'])
+    # P['Mag']['xObs'] = MagneticsObs['X'].values
+    # P['Mag']['yObs'] = MagneticsObs['Y'].values
+    # P['Mag']['Obs'] = MagneticsObs['VALUE'].values
+    # P['Mag']['nObsPoints'] = len(P['Mag']['Obs'])
+    # P['Mag']['medianObs'] = np.median(P['Mag']['Obs'])
 
     #Tracer data
     #make sure the well paths only include those sections below the casing
     P['Tracer'] = {}
-    WellPathsOrig = pd.read_csv('Data/AllWellPathsData.csv')
+    WellPathsOrig = pd.read_csv('Data/AllBrady3DWells.csv')
     WellPaths = WellPathsOrig.copy()
-    CasingShoe = pd.read_csv('Data/CasingShoe.csv')
-    for i in range(len(CasingShoe)):
-        well = CasingShoe.loc[i, 'WellName']
-        casingZ = CasingShoe.loc[i, 'Z']
-        removeV = (WellPaths['WellName']==well)&(WellPaths['Zm']>=casingZ) 
-        WellPaths = WellPaths[~removeV]
+    # CasingShoe = pd.read_csv('Data/CasingShoe.csv')
+    # for i in range(len(CasingShoe)):
+    #     well = CasingShoe.loc[i, 'WellName']
+    #     casingZ = CasingShoe.loc[i, 'z']
+    #     removeV = (WellPaths['WellName']==well)&(WellPaths['z']>=casingZ) 
+    #     WellPaths = WellPaths[~removeV]
     P['WellPaths'] = WellPaths
 
     TracerConnections = pd.read_csv('Data/TracerConnections.csv')
@@ -93,7 +93,7 @@ def loadData(P):
     
     # Fault intersection data
     P['FaultMarkers'] = {}
-    FaultMarkers= pd.read_csv('Data/MarkersInversion.csv')
+    FaultMarkers= pd.read_csv('Data/BradyWellsFaults.csv')
     FaultMarkers['wellid'] = FaultMarkers.groupby(['WellName']).ngroup()
     P['FaultMarkers']['Obs'] = FaultMarkers
     Wellnames = WellPathsOrig['WellName']

@@ -339,44 +339,7 @@ def calc_granitetop(P):
     # Find the first indices of the top of granite (in the z direction)
     topgraniteIdx = np.argmax(lithology==P['HypP']['graniteIdx'], axis=2) 
     topgranite = P['zmax']-topgraniteIdx*float(P['cubesize'])
-
-    # This whole section is added because of the case of the intrusions
-    # When there are instrusions, then the area around them can have 
-    # unreasonable lithologies. Also the intrusions themsevelves can mean there
-    # is no index for the top of granite, since the intrusions blocks the top 
-    # of granite.
-    # The following checks for each cell whether its neighbor is an intrusions,
-    # and then if the neighbor is an intrusion, and the granite depth
-    # is greater than a certain expected amount, the value of the granite top
-    # for that depth is removed.
-    # If there are no intrusions, this whole section can be removed.
-    topgranite[(topgraniteIdx==0)|((topgraniteIdx>21))]=np.NaN
-    isnanright = np.pad(topgranite,((0,0),(1,0)), mode='constant')[:, :-1]
-    isnanleft = np.pad(topgranite,((0,0),(0,1)), mode='constant')[:, 1:]
-    isnantop = np.pad(topgranite,((1,0),(0,0)), mode='constant')[:-1, :]
-    isnanbottom = np.pad(topgranite,((0,1),(0,0)), mode='constant')[1:, :]
-    isnantopright = np.pad(topgranite,((1,0),(1,0)), mode='constant')[:-1, :-1]
-    isnantopleft = np.pad(topgranite,((1,0),(0,1)), mode='constant')[:-1, 1:]
-    isnanbottomleft = np.pad(topgranite,((0,1),(0,1)), mode='constant')[1:, 1:]
-    isnanbottomright = np.pad(topgranite,((0,1),(1,0)), mode='constant')[1:, :-1]
-    isnanTotal =  (isnanright+isnanleft+isnantop+isnanbottom+isnantopright+isnantopleft+
-                   isnanbottomleft+isnanbottomright)
-
-    isnanright = np.pad(topgranite,((0,0),(2,0)), mode='constant')[:, :-2]
-    isnanleft = np.pad(topgranite,((0,0),(0,2)), mode='constant')[:, 2:]
-    isnantop = np.pad(topgranite,((2,0),(0,0)), mode='constant')[:-2, :]
-    isnanbottom = np.pad(topgranite,((0,2),(0,0)), mode='constant')[2:, :]
-    isnantopright = np.pad(topgranite,((2,0),(2,0)), mode='constant')[:-2, :-2]
-    isnantopleft = np.pad(topgranite,((2,0),(0,2)), mode='constant')[:-2, 2:]
-    isnanbottomleft = np.pad(topgranite,((0,2),(0,2)), mode='constant')[2:, 2:]
-    isnanbottomright = np.pad(topgranite,((0,2),(2,0)), mode='constant')[2:, :-2]
-    isnanTotal =  (isnanTotal+isnanright+isnanleft+isnantop+isnanbottom+isnantopright+isnantopleft+
-                   isnanbottomleft+isnanbottomright)
-
-    
-    with np.errstate(invalid='ignore'):
-        topgranite[((np.isnan(isnanTotal))&(topgranite<=-1200))] = np.NaN
-   
+  
     if(np.sum(topgranite<-1500)):
         print('Top of granite is very high in ' + str(np.sum(topgranite<-1500)) +' spots')
         

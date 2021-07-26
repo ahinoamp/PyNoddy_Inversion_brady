@@ -140,7 +140,12 @@ if __name__== "__main__":
     params['OutputImageFreq']=15
     params['verbose']=True    
     params['Windows'] = True
-        
+    params['jupyter'] = False
+    params['xy_origin']=[323500,	4404206, -2700]
+    params['xy_extent'] = [6750,	7200, 3900]
+    params['DataTypes'] = ['Grav', 'GT', 'FaultMarkers','Tracer']
+    params['ScenarioNum'] = 8
+
     MCMC_Noddy(params)
     
     end = time.time()

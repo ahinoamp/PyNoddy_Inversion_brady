@@ -36,7 +36,6 @@ def DefinePriorUncertainty(P):
    # Add stratigraphy event
     add_strat_event(P) 
     add_tilt_event(P)
-    add_plug_events(P)
     add_faulting_events(P)
 
     ModelParamTable = pd.DataFrame(PropAttr)
@@ -149,9 +148,9 @@ def add_faulting_events(P):
     if(Scenario<1):
         FaultData = pd.read_csv('Data/Scenario'+str(Scenario)+'_Vertices.csv').sort_values(['id'])
     else:
-        FaultData = pd.read_csv('Data/FaultBank7_19.csv').sort_values(['id'])
+        FaultData = pd.read_csv('Data/BradyFaultBank_for_stochastic_points.csv').sort_values(['id'])
         P['Zone']=FaultData.groupby('id').agg(zone=pd.NamedAgg(column='Zone', aggfunc='first'))['zone'].values
-        P['OrigId']=FaultData.groupby('id').agg(zone=pd.NamedAgg(column='id', aggfunc='first'))['zone'].values
+#        P['OrigId']=FaultData.groupby('FaultNum').agg(zone=pd.NamedAgg(column='id', aggfunc='first'))['zone'].values
         
     parameterData = SetUpFaultRepresentation(FaultData.copy(), P['HypP']['xy_origin'], P['HypP']['SlipParam'])
     nFaultPointsList = nFaultPointsList + parameterData['nFaultPoints']
@@ -165,7 +164,7 @@ def add_faulting_events(P):
     for i in range(nFaults):
         zone = parameterData['Zone'][i]
         EventName ='Fault'+str(i)+'_'+zone
-        EventNumber = 6+i
+        EventNumber = 3+i
         for p in range(len(parameters)):
             Prop = parameters[p]
             pVal = parameterData[Prop][i]
@@ -265,7 +264,6 @@ def SetUpFaultRepresentation(Data, xy_origin, SlipParam=0.04, nPointsDivideList=
         filterV = Data['id']==Faults[i]
         xy = Data.loc[filterV, ['X', 'Y']].values
         EastWest = random.choice(['East', 'West'])
-        Data.loc[filterV, ['DipDirecti']].values[0,0]
         meanX = (np.max(xy[:,0])+np.min(xy[:,0]))/2
         meanY = (np.max(xy[:,1])+np.min(xy[:,1]))/2
         zone = Data.loc[filterV, ['Zone']].values[0,0]
@@ -396,15 +394,8 @@ def SelectFaultingEvents(ModelParamTable, P):
         ########ALSO Below - there is an issue of no order mixing!! of events...
         ##################################
     else:
-        ZoneDictionary = {'0': 'MidEast', 
-                          '1': 'MidMid', 
-                          '2': 'MidWest',
-                          '3': 'NorthEast',
-                          '4': 'NorthMid',
-                          '5': 'NorthWest', 
-                          '6': 'SouthEast', 
-                          '7': 'SouthMid', 
-                          '8': 'SouthWest'}
+        ZoneDictionary = {'0': 'East', 
+                          '1': 'West'}
         invertedZoneDictionary = dict([[v,k] for k,v in ZoneDictionary.items()])
         
         FaultZones= P['Zone'].copy()
@@ -412,19 +403,19 @@ def SelectFaultingEvents(ModelParamTable, P):
         equivalentEventNumbers = np.arange(P['nNonFaultingEvents']+1, len(FaultZones)+P['nNonFaultingEvents']+1)
         IndexChoose=np.arange(1, P['nNonFaultingEvents']+1, dtype=int).tolist()
 
-        Order = np.random.permutation(9)
+        Order = np.random.permutation(2)
         
         i=0
         xyAcceptedPairs = []
         trickval = 0
         while (i < ScenarioNum):
             #Look at corner Order[i]
-            Zone_i = ZoneDictionary[str(Order[np.mod(i+trickval,9)])]
+            Zone_i = ZoneDictionary[str(Order[np.mod(i+trickval,2)])]
             #Get the groupnumbers of people in that zone
             nFaultsZone = np.sum(FaultZones==Zone_i)
             eventNinThatZone = equivalentEventNumbers[FaultZones==Zone_i]
             if(len(eventNinThatZone)==0):
-                if(trickval<9):
+                if(trickval<2):
                     trickval = trickval+1
                 else:
                     print('ohhh nooo...')
@@ -518,9 +509,6 @@ def OrderFaultingEvents(ModelParamTable, P):
                 EventNumbers.append(FaultEvent_i)
 
     P['nFaultPoints'] = P['nFaultPoints'][np.asarray(EventNumbers)-P['nNonFaultingEvents']-1]
-    EventNumbers.insert(0, 5)
-    EventNumbers.insert(0, 4)
-    EventNumbers.insert(0, 3)
     EventNumbers.insert(0, 2)
     EventNumbers.insert(0, 1)
     
