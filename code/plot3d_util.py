@@ -257,7 +257,6 @@ def CalculatePlotStructure(modelfile, plot, cubesize = 250,
     colors = pl.cm.jet(np.linspace(0,1,nSurfaces))
 
     for i in range(nSurfaces):
-        print(colors[i, 0:3])
         filename = fileprefix+str(i)+'.vtk'
         e=vtkP.load(filename).tomesh(fill=True).c(colors[i, 0:3])
         plot += e
