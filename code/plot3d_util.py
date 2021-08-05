@@ -7,6 +7,8 @@ import matplotlib.pylab as pl
 from scipy.interpolate import griddata
 import SimulationUtilities as sim
 from glob import glob
+from scipy import interpolate
+import vedo as vtkP
 
 def getDXF_parsed_structure(output_name):
     filename = output_name + '.dxf'
@@ -127,16 +129,78 @@ def convertSurfaces2VTK(points, cell_data, faceCounter, outputOption = 1, filepr
     
     return nSurfaces, points, CatCodes
 
+def getxyz_sim_layer_top(P, output_name, layer_num = 4, dt_name='GT'):
+    """Calculate the mismatch between observed and simulated granite top data."""
+
+    get_model_dimensions(P)
+        
+    #load and reshape files
+    filename = output_name+'.g12'
+    LithologyCodes = np.genfromtxt(filename, delimiter='\t', dtype=int)
+    LithologyCodes = LithologyCodes[:, 0:-1]
+
+    lithology = np.zeros(P['shapeL'])
+    for i in range(P['shapeL'][2]):
+        startIdx = P['shapeL'][1]*i 
+        stopIdx = P['shapeL'][1]*(i+1)
+        lithology[:,:,i] = LithologyCodes[startIdx:stopIdx,:].T
+    lithology = lithology[::-1,:,:]
+
+    # Find the first indices of the top of granite (in the z direction)
+    topgraniteIdx = np.argmax(lithology==layer_num, axis=2) 
+    topgranite = P['zmax']-topgraniteIdx*float(P['cubesize'])
+  
+#    if(np.sum(topgranite<-1500)):
+#        print('Top of granite is very high in ' + str(np.sum(topgranite<-1500)) +' spots')
+        
+    P['xLith'] = np.linspace(P['xminL'], P['xmaxL'], P['nxL'], dtype=np.float32)+P['xmin']
+    P['yLith'] = np.linspace(P['yminL'], P['ymaxL'], P['nyL'], dtype=np.float32)+P['ymin']
+    P['yyLith'], P['xxLith'] = np.meshgrid(P['yLith'], P['xLith'], indexing='ij')
+    #get only the valid values
+    filteroutNan = ~np.isnan(topgranite) 
+    x1 = P['xxLith'][filteroutNan]
+    y1 = P['yyLith'][filteroutNan]
+    newtopgranite = topgranite[filteroutNan]
+   
+    
+    GT_Sim = interpolate.griddata((x1, y1), newtopgranite.ravel(),
+                              (P[dt_name]['xObs'], P[dt_name]['yObs']), method='linear')
+    
+    return GT_Sim
+    
+def get_model_dimensions(P):
+    """Load information about model discretisation from .g00 file"""
+
+    output_name = P['output_name']
+    filename = output_name+'.g00'
+
+    filelines = open(filename).readlines() 
+    for line in filelines:
+        if 'NUMBER OF LAYERS' in line:
+            P['nzL'] = int(line.split("=")[1])
+        elif 'LAYER 1 DIMENSIONS' in line:
+            (P['nxL'], P['nyL']) = [int(l) for l in line.split("=")[1].split(" ")[1:]]
+        elif 'UPPER SW CORNER' in line:
+            l = [float(l) for l in line.split("=")[1].split(" ")[1:]]
+            (P['xminL'], P['yminL'], P['zmaxL']) = l
+        elif 'LOWER NE CORNER' in line:
+            l = [float(l) for l in line.split("=")[1].split(" ")[1:]]
+            (P['xmaxL'], P['ymaxL'], P['zminL']) = l
+        elif 'NUM ROCK' in line:
+            n_rocktypes = int(line.split('=')[1])
+
+    P['shapeL'] = (P['nyL'], P['nxL'], P['nzL'])
+
 def CalculatePlotStructure(modelfile, plot, cubesize = 250,  
                            xy_origin=[317883,4379246, 1200-4000], plotwells =1,
-                           outputOption = 1, outputfolder = '', num=0):
+                           outputOption = 1, outputfolder = '', num=0, Windows=False):
     
     output_name = 'PostProcessing/3dmodel'
-    outputoption = 'BLOCK_SURFACES'
+    outputoption = 'ALL'
 
     #Calculate the model
     start = time.time()
-    sim.calculate_model(modelfile, output_name, outputoption, Windows=False)
+    sim.calculate_model(modelfile, output_name, outputoption, Windows=Windows)
     end = time.time()
     print('Calculation time took '+str(end - start) + ' seconds')
 
@@ -193,12 +257,85 @@ def CalculatePlotStructure(modelfile, plot, cubesize = 250,
     colors = pl.cm.jet(np.linspace(0,1,nSurfaces))
 
     for i in range(nSurfaces):
+        print(colors[i, 0:3])
         filename = fileprefix+str(i)+'.vtk'
         e=vtkP.load(filename).tomesh(fill=True).c(colors[i, 0:3])
         plot += e
 
+    plot_basement_top = True
+
+    if(plot_basement_top):
+    #Granite top observations
+        P={}
+        P['cubesize'] = cubesize
+        P['output_name'] = output_name
+        P['xy_origin'] = xy_origin
+        P['GT'] = {}
+        GraniteTopObs = pd.read_csv('Data/BradyTopBasement.csv')
+        P['GT']['xObs'] = GraniteTopObs['x'].values
+        P['GT']['yObs'] = GraniteTopObs['y'].values
+        P['GT']['Obs'] = GraniteTopObs['z'].values
+        P['GT']['nObsPoints'] = len(P['GT']['Obs'])
+    
+        P['MVT'] = {}
+        GraniteTopObs = pd.read_csv('Data/BradyTopMioceneVolc.csv')
+        P['MVT']['xObs'] = GraniteTopObs['x'].values
+        P['MVT']['yObs'] = GraniteTopObs['y'].values
+        P['MVT']['Obs'] = GraniteTopObs['z'].values
+        P['MVT']['nObsPoints'] = len(P['MVT']['Obs'])
+        P['zmax'] = 1200
+        P['xmin'] = P['xy_origin'][0]
+    
+        P['ymin'] = P['xy_origin'][1]
+    
+        P['zmin'] = P['xy_origin'][2]
+        dt_name='GT'
+        GT_Sim_GT = getxyz_sim_layer_top(P, output_name, layer_num = 4, dt_name=dt_name)
+        GT_pts = np.concatenate((P[dt_name]['xObs'].reshape((-1,1)), 
+                                 P[dt_name]['yObs'].reshape((-1,1)),
+                                 GT_Sim_GT.reshape((-1,1))), axis=1)
+        gt_sim_viz = vtkP.Points(GT_pts, c="g", r=60)
+        gt_sim_viz.name = 'simulated granite top'
+        plot += gt_sim_viz.flag()
+
+        GT_pts_obs = np.concatenate((P[dt_name]['xObs'].reshape((-1,1)), 
+                                 P[dt_name]['yObs'].reshape((-1,1)),
+                                 P[dt_name]['Obs'].reshape((-1,1))), axis=1)
+        gt_obs_viz = vtkP.Points(GT_pts_obs, c="k", r=60)
+        gt_obs_viz.name = 'observed granite top'
+        plot += gt_obs_viz.flag()
+
+        dt_name='MVT'
+        GT_Sim_MVT = getxyz_sim_layer_top(P, output_name, layer_num = 2, dt_name=dt_name)
+        MVT_pts = np.concatenate((P[dt_name]['xObs'].reshape((-1,1)), 
+                                  P[dt_name]['yObs'].reshape((-1,1)), 
+                                  GT_Sim_MVT.reshape((-1,1))), axis=1)
+        #P[dt_name]['xObs'], P[dt_name]['yObs']        
+        mvt_sim_viz = vtkP.Points(MVT_pts, c="g", r=60)
+        mvt_sim_viz.name = 'simulated miocene volcanic top'
+        plot += mvt_sim_viz.flag()
+        
+        MVT_pts_obs = np.concatenate((P[dt_name]['xObs'].reshape((-1,1)), 
+                                 P[dt_name]['yObs'].reshape((-1,1)),
+                                 P[dt_name]['Obs'].reshape((-1,1))), axis=1)
+        mvt_obs_viz = vtkP.Points(MVT_pts_obs, c="k", r=60)
+        mvt_obs_viz.name = 'observed miocene volcanic top'
+        plot += mvt_obs_viz.flag()        
+        
     return points
 
-def plot_3d_model(modelfile, cubesize, plot, xy_origin = [316448, 4379166, -2700]):
+def plot_3d_model(modelfile, cubesize, plot, xy_origin = [316448, 4379166, -2700], Windows=False):
 
-    points = CalculatePlotStructure(modelfile, plot, cubesize = cubesize, xy_origin=xy_origin)
+    points = CalculatePlotStructure(modelfile, plot, cubesize = cubesize, xy_origin=xy_origin, Windows=Windows)
+    
+
+best_model_file = 'C:/Users/ahino/Documents/GitHub/PyNoddy_Inversion_brady/code/Combo_Scratch/Thread0/HistoryFileInspection/His_0_G_215_Err_554.his'
+xy_origin = [325233.059, 4404112, -2700]
+
+vtkP.settings.embedWindow('k3d') #you can also choose to change to itkwidgets, k3d
+
+cubesize = 100
+plot = vtkP.Plotter(axes=1, bg='white', interactive=1)
+plot_3d_model(best_model_file, cubesize, plot, xy_origin, Windows=True)
+plot.show(viewup='z')
+

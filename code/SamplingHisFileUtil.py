@@ -21,18 +21,18 @@ def CreatePyNoddyTemplateGivenParameterTablePatua(P,ModelParamTable):
     updated after sampling new parameters'''
     
     nEvents = len(np.unique(ModelParamTable['EventNum']))
-    nFaults = nEvents-5
+    nFaults = nEvents-P['nNonFaultingEvents']
     FaultPoints = P['nFaultPoints']
     # This line needs to be changed when considering scenarios different than 
     # the one presented in this work
-    faultingEvents = ModelParamTable['EventNum']>5
+    faultingEvents = ModelParamTable['EventNum']>P['nNonFaultingEvents']
     faultnames = pd.unique(ModelParamTable.loc[faultingEvents, 'EventName'])
     P['FaultNames']=faultnames
     
     filename = P['SampledInputFileName'] + 'template'    
     CreatePyNoddyTemplate(filename, P, nLayers = 4, nFaults = nFaults, faultnames = faultnames,
                           FaultPoints = FaultPoints, 
-                          LayerNames = ['Intrusive', 'Felsic', 'Mafic', 'Sed'], 
+                          LayerNames = ['Basement', 'OligoceneVolc', 'MioceneVolc', 'TertiarySeds'], 
                           origin=[0,0,4000], extent=P['HypP']['xy_extent'])
     
     # Find the non changing parameters (with low standard deviation)
@@ -226,14 +226,15 @@ def UpdateTemplateGivenParam(paraValList, ModelParamTable,
     substitutions = dict(zip(Name, paraValList)) 
 
     # the layer thicknesses need to be transformed to height
-    sedThickness = float(substitutions['$Sed_Thickness$'])
-    maficThickness = float(substitutions['$Mafic_Thickness$'])
-    felsicThickness = float(substitutions['$Felsic_Thickness$'])
+    # LayerNames = ['TertiarySeds', 'MioceneVolc','OligoceneVolc',  'Basement']
+    sedThickness = float(substitutions['$TertiarySeds_Thickness$'])
+    maficThickness = float(substitutions['$MioceneVolc_Thickness$'])
+    felsicThickness = float(substitutions['$OligoceneVolc_Thickness$'])
     ModelTop = P['HypP']['xy_extent'][2] 
-    substitutions['$Sed_Height$'] = "{:.5f}".format(ModelTop-sedThickness)
-    substitutions['$Mafic_Height$']=  "{:.5f}".format(ModelTop-sedThickness-maficThickness)
-    substitutions['$Felsic_Height$']=  "{:.5f}".format(ModelTop-sedThickness-maficThickness-felsicThickness)
-    substitutions['$Intrusive_Height$']= str(0)
+    substitutions['$TertiarySeds_Height$'] = "{:.5f}".format(ModelTop-sedThickness)
+    substitutions['$MioceneVolc_Height$']=  "{:.5f}".format(ModelTop-sedThickness-maficThickness)
+    substitutions['$OligoceneVolc_Height$']=  "{:.5f}".format(ModelTop-sedThickness-maficThickness-felsicThickness)
+    substitutions['$Basement_Height$']= str(0)
 
     # the zaxis needs to be the same as xaxis
     # this is a funny bug in Noddy that has to be fixed
@@ -274,7 +275,8 @@ def CreatePyNoddyTemplate(filename, P, nLayers = 4, nFaults = 5, faultnames =['f
                           FaultPoints = [3,5,6,23,19],
                           LayerNames = ['Intrusive', 'Felsic', 'Mafic', 'Sed'], 
                           origin = [0,0,4000], extent=[9000,9000,4000]):
-    nEvents = nFaults + 5
+    
+    nEvents = nFaults + P['nNonFaultingEvents']
     
     FaultProperties = ['X', 'Y', 'Z', 'Dip Direction', 
                        'Dip', 'Slip', 'Rotation', 'Amplitude', 'Radius', 'XAxis', 'YAxis',
@@ -307,56 +309,11 @@ def CreatePyNoddyTemplate(filename, P, nLayers = 4, nFaults = 5, faultnames =['f
     file1.write(EventTitle + '\n') 
     tiltTxt = his._HisTemplates().tilt
     file1.write(tiltTxt+ '\n') 
-
-    EventTitle = 'Event #3	= PLUG'    
-    file1.write(EventTitle + '\n') 
-    plugTxt = his._HisTemplates().plug
-    plugTxt = plugTxt.replace('$Plug_X$', '$Plug'+str(0)+'_X$')
-    plugTxt = plugTxt.replace('$Plug_Y$', '$Plug'+str(0)+'_Y$')
-    plugTxt = plugTxt.replace('$Plug_Z$', '$Plug'+str(0)+'_Z$')
-    plugTxt = plugTxt.replace('$Plug_XAxis$', '$Plug'+str(0)+'_XAxis$')
-    plugTxt = plugTxt.replace('$Plug_YAxis$', '$Plug'+str(0)+'_YAxis$')
-    plugTxt = plugTxt.replace('$Plug_ZAxis$', '$Plug'+str(0)+'_ZAxis$')
-    plugTxt = plugTxt.replace('$Plug_Density$', '$Plug'+str(0)+'_Density$')
-    plugTxt = plugTxt.replace('$Plug_MagSus$', '$Plug'+str(0)+'_MagSus$')
-    plugTxt = plugTxt.replace('$Plug_Radius$', '$Plug'+str(0)+'_Radius$')
-    plugTxt = plugTxt.replace('$Plug_Dip Direction$', '$Plug'+str(0)+'_Dip Direction$')
-    file1.write(plugTxt+ '\n') 
-    
-    EventTitle = 'Event #4	= PLUG'    
-    file1.write(EventTitle + '\n') 
-    plugTxt = his._HisTemplates().plug
-    plugTxt = plugTxt.replace('$Plug_X$', '$Plug'+str(1)+'_X$')
-    plugTxt = plugTxt.replace('$Plug_Y$', '$Plug'+str(1)+'_Y$')
-    plugTxt = plugTxt.replace('$Plug_Z$', '$Plug'+str(1)+'_Z$')
-    plugTxt = plugTxt.replace('$Plug_XAxis$', '$Plug'+str(1)+'_XAxis$')
-    plugTxt = plugTxt.replace('$Plug_YAxis$', '$Plug'+str(1)+'_YAxis$')
-    plugTxt = plugTxt.replace('$Plug_ZAxis$', '$Plug'+str(1)+'_ZAxis$')
-    plugTxt = plugTxt.replace('$Plug_Density$', '$Plug'+str(1)+'_Density$')
-    plugTxt = plugTxt.replace('$Plug_Radius$', '$Plug'+str(1)+'_Radius$')
-    plugTxt = plugTxt.replace('$Plug_MagSus$', '$Plug'+str(1)+'_MagSus$')
-    plugTxt = plugTxt.replace('$Plug_Dip Direction$', '$Plug'+str(1)+'_Dip Direction$')
-    file1.write(plugTxt+ '\n') 
-    
-    EventTitle = 'Event #5	= PLUG'    
-    file1.write(EventTitle + '\n') 
-    plugTxt = his._HisTemplates().plug
-    plugTxt = plugTxt.replace('$Plug_X$', '$Plug'+str(2)+'_X$')
-    plugTxt = plugTxt.replace('$Plug_Y$', '$Plug'+str(2)+'_Y$')
-    plugTxt = plugTxt.replace('$Plug_Z$', '$Plug'+str(2)+'_Z$')
-    plugTxt = plugTxt.replace('$Plug_XAxis$', '$Plug'+str(2)+'_XAxis$')
-    plugTxt = plugTxt.replace('$Plug_YAxis$', '$Plug'+str(2)+'_YAxis$')
-    plugTxt = plugTxt.replace('$Plug_ZAxis$', '$Plug'+str(2)+'_ZAxis$')
-    plugTxt = plugTxt.replace('$Plug_Density$', '$Plug'+str(2)+'_Density$')
-    plugTxt = plugTxt.replace('$Plug_Radius$', '$Plug'+str(2)+'_Radius$')
-    plugTxt = plugTxt.replace('$Plug_MagSus$', '$Plug'+str(2)+'_MagSus$')
-    plugTxt = plugTxt.replace('$Plug_Dip Direction$', '$Plug'+str(2)+'_Dip Direction$')
-    file1.write(plugTxt+ '\n') 
     
     for i in range(nFaults):
         FaultEventName = faultnames[i]
         nPoints= FaultPoints[i]
-        EventTitle = 'Event #%d	= FAULT' % (i+6)  
+        EventTitle = 'Event #%d	= FAULT' % (i+3)  
         file1.write(EventTitle + '\n') 
 
         #start

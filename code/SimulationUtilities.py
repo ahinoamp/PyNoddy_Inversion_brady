@@ -161,7 +161,11 @@ def simulate_calc_mismatch(P):
 
     # Calculate the granite top mismatch
     if('GT' in P['DataTypes']):
-        calc_granitetop(P)
+        calc_layertop(P, layer_num=4, dt_name = 'GT')
+
+    # Calculate the miocene volcanic top mismatch
+    if('MVT' in P['DataTypes']):
+        calc_layertop(P, layer_num=2, dt_name = 'MVT')
 
     # Calculate the tracer mismatch
     if('Tracer' in P['DataTypes']):
@@ -315,7 +319,7 @@ def calc_magnetics(P):
     # next iteration
     os.remove(P['output_name']+'.mag')
     
-def calc_granitetop(P):
+def calc_layertop(P, layer_num=4, dt_name = 'GT'):
     """Calculate the mismatch between observed and simulated granite top data."""
 
     # First determine the model dimensions from the .g00 file
@@ -337,13 +341,13 @@ def calc_granitetop(P):
     lithology = lithology[::-1,:,:]
 
     # Find the first indices of the top of granite (in the z direction)
-    topgraniteIdx = np.argmax(lithology==P['HypP']['graniteIdx'], axis=2) 
+    topgraniteIdx = np.argmax(lithology==layer_num, axis=2) 
     topgranite = P['zmax']-topgraniteIdx*float(P['cubesize'])
   
-    if(np.sum(topgranite<-1500)):
-        print('Top of granite is very high in ' + str(np.sum(topgranite<-1500)) +' spots')
+#    if(np.sum(topgranite<-1500)):
+#        print('Top of granite is very high in ' + str(np.sum(topgranite<-1500)) +' spots')
         
-    P['GT']['simViz']=topgranite
+    P[dt_name]['simViz']=topgranite
     P['xLith'] = np.linspace(P['xminL'], P['xmaxL'], P['nxL'], dtype=np.float32)+P['xmin']
     P['yLith'] = np.linspace(P['yminL'], P['ymaxL'], P['nyL'], dtype=np.float32)+P['ymin']
     P['yyLith'], P['xxLith'] = np.meshgrid(P['yLith'], P['xLith'], indexing='ij')
@@ -354,14 +358,14 @@ def calc_granitetop(P):
     newtopgranite = topgranite[filteroutNan]
    
     GT_Sim = interpolate.griddata((x1, y1), newtopgranite.ravel(),
-                              (P['GT']['xObs'], P['GT']['yObs']), method='linear')
+                              (P[dt_name]['xObs'], P[dt_name]['yObs']), method='linear')
 
     # calculate error
-    P['GT']['Sim_Obs'] = GT_Sim
-    pt_error_array_L1 = L1_err(GT_Sim, P['GT']['Obs'])
+    P[dt_name]['Sim_Obs'] = GT_Sim
+    pt_error_array_L1 = L1_err(GT_Sim, P[dt_name]['Obs'])
 
     # book keeping
-    book_keep(P, pt_error_array_L1, 'GT')
+    book_keep(P, pt_error_array_L1, dt_name)
 
 
 def get_model_dimensions(P):
@@ -722,6 +726,7 @@ def calc_fault_markers(P):
     intersectionsListz = []
     idList = []
     for i in range(len(wells)):
+
         filterWell = wellpaths['WellName']==wells[i]
 
         #get fault data along wellbore        

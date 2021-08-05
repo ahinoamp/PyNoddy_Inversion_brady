@@ -35,6 +35,13 @@ def loadData(P):
     P['GT']['Obs'] = GraniteTopObs['z'].values
     P['GT']['nObsPoints'] = len(P['GT']['Obs'])
 
+    P['MVT'] = {}
+    GraniteTopObs = pd.read_csv('Data/BradyTopMioceneVolc.csv')
+    P['MVT']['xObs'] = GraniteTopObs['x'].values
+    P['MVT']['yObs'] = GraniteTopObs['y'].values
+    P['MVT']['Obs'] = GraniteTopObs['z'].values
+    P['MVT']['nObsPoints'] = len(P['MVT']['Obs'])
+
     #Magnetics observations
     # P['Mag'] = {}
     # MagneticsObs = pd.read_csv('Data/Magnetics.csv')

@@ -54,21 +54,34 @@ def visualize_opt_step(filename, P):
                                                            indexing='xy')
     P['Viz']['FaultsXY'] = GI.GetFaultsXY(P)
 
+    rn = 0
+    
     # Plot a row for each data type for the summary 
     if('Grav' in P['DataTypes']):
         PlotGravityRow(P, axs)
+        rn = rn+1
 
     if('GT' in P['DataTypes']):
-        PlotGraniteTopRow(P, axs)
+        PlotGraniteTopRow(P, axs, dt_name='GT', 
+                          dtype_full_name = 'Granite Top', rn =rn)
+        rn = rn+1
+
+    if('MVT' in P['DataTypes']):
+        PlotGraniteTopRow(P, axs, dt_name='MVT', 
+                          dtype_full_name = 'Miocene Volcanic Top', rn =rn)
+        rn = rn+1
 
     if('Mag' in P['DataTypes']):
-        PlotMagneticsRow(P, axs)
+        PlotMagneticsRow(P, axs, rn =rn)
+        rn = rn+1
     
     if('Tracer' in P['DataTypes']):
-        PlotTracerData(P, axs)
+        PlotTracerData(P, axs, rn =rn)
+        rn = rn+1
 
     if('FaultMarkers' in P['DataTypes']):
-        PlotFaultMarkers(P, axs)
+        PlotFaultMarkers(P, axs, rn =rn)
+        rn = rn+1
   
     PlotSummary(P, axs, colsPerDataType)          
  
@@ -213,7 +226,7 @@ def plt_heatmap(P, xx, yy, zz, norm, ax, title):
 def plt_optim_progress(P, ax, datatype):
     
     dictTitle = {'Grav': 'gravity', 'Mag': 'magnetics', 'GT': 'granite top',
-                 'Tracer': 'Tracer', 'FaultMarkers': 'fault markers'}
+                 'Tracer': 'Tracer', 'FaultMarkers': 'fault markers', 'MVT': 'miocene volcanics top'}
     x=np.arange(1, len(P[datatype]['L1MismatchList'])+1)
     ax.plot(x, P[datatype]['L1MismatchList'])
     ax.set_title('Mismatch per iteration '+dictTitle[datatype])
@@ -228,13 +241,11 @@ def plt_optim_progress(P, ax, datatype):
     asp /= (6./4.5)
     ax.set_aspect(asp)
 
-def PlotGraniteTopRow(P, axs):
+def PlotGraniteTopRow(P, axs, dt_name='GT', dtype_full_name = 'Granite Top', rn =2):
     '''Create a row of plots showing the observed, simulated, mismatch and
     optimisation progress of the granite top data'''
     
-    rn = int('Grav' in P['DataTypes'])
-
-    norm, norm_mis = get_norm(P, datatype = 'GT')
+    norm, norm_mis = get_norm(P, datatype = dt_name)
        
     # 1. plot observed granite top
     #`````````````````````````````
@@ -243,8 +254,8 @@ def PlotGraniteTopRow(P, axs):
     else:
         ax = axs[rn,0]
     
-    plt_scatter(P, P['GT']['xObs'], P['GT']['yObs'], P['GT']['Obs'], ax,
-            title='Observed Granite Top', norm=norm, s=38, edgecolors='k',
+    plt_scatter(P, P[dt_name]['xObs'], P[dt_name]['yObs'], P[dt_name]['Obs'], ax,
+            title='Observed '+dtype_full_name, norm=norm, s=38, edgecolors='k',
             fault_alpha = 0.35, fault_lw=1, fault_ballsize = 3)
 
 
@@ -255,10 +266,10 @@ def PlotGraniteTopRow(P, axs):
     else:
         ax = axs[rn, 1]
 
-    plt_heatmap(P, P['xxLith'], P['yyLith'], P['GT']['simViz'], 
-                norm, ax, title='Simulated Granite Top')
+    plt_heatmap(P, P['xxLith'], P['yyLith'], P[dt_name]['simViz'], 
+                norm, ax, title='Simulated '+dtype_full_name)
     # Add empty scatter points that show locations of granite top markers
-    cf = ax.scatter(P['GT']['xObs'], P['GT']['yObs'], facecolors='none', 
+    cf = ax.scatter(P[dt_name]['xObs'], P[dt_name]['yObs'], facecolors='none', 
                     edgecolors='k', s=30, cmap = 'jet')
 
     # 3. plot local weights if error type is local
@@ -269,9 +280,9 @@ def PlotGraniteTopRow(P, axs):
         else:
             ax = axs[rn,2]
         # choose the local weights for parameter 40
-        LocalWeightChosen = P['GT']['LocalErrorWeights'][:, 88]
+        LocalWeightChosen = P[dt_name]['LocalErrorWeights'][:, 88]
         
-        plt_scatter(P, P['GT']['xObs'], P['GT']['yObs'], LocalWeightChosen, ax,
+        plt_scatter(P, P[dt_name]['xObs'], P[dt_name]['yObs'], LocalWeightChosen, ax,
             title='Weights for p40', 
                         norm=matplotlib.colors.Normalize(vmin=np.min(LocalWeightChosen),
                                              vmax=np.max(LocalWeightChosen)))
@@ -287,16 +298,19 @@ def PlotGraniteTopRow(P, axs):
     else:
         ax = axs[rn, axisIdx]
         
-    grid_mismatch = griddata(np.array([P['GT']['xObs'],P['GT']['yObs']]).T, 
-                         (P['GT']['L1MismatchMatrix'][:,-1].reshape(-1,)), 
+    grid_mismatch = griddata(np.array([P[dt_name]['xObs'],P[dt_name]['yObs']]).T, 
+                         (P[dt_name]['L1MismatchMatrix'][:,-1].reshape(-1,)), 
                          (P['Viz']['GeoXX'], P['Viz']['GeoYY']), method='linear')
 
     plt_heatmap(P, P['Viz']['GeoXX'], P['Viz']['GeoYY'], grid_mismatch, 
-                norm_mis, ax, title='Mismatch granite top')
+                norm_mis, ax, title='Mismatch ' + dtype_full_name)
 
-    cf = ax.scatter(P['GT']['xObs'], P['GT']['yObs'], facecolors='none', 
+    cf = ax.scatter(P[dt_name]['xObs'], 
+                    P[dt_name]['yObs'], 
+                    c= P[dt_name]['L1MismatchMatrix'][:,-1].reshape(-1,),
+                    norm=norm_mis, 
                     edgecolors='k', s=30, cmap = 'jet')
-
+    
     # 5. plot optimisation progress
     #`````````````````
     if(P['nDataTypes']==1):
@@ -304,13 +318,12 @@ def PlotGraniteTopRow(P, axs):
     else:
         ax = axs[rn, axisIdx+1]
     
-    plt_optim_progress(P, ax, datatype='GT')
+    plt_optim_progress(P, ax, datatype=dt_name)
 
 
-def PlotMagneticsRow(P, axs):
+def PlotMagneticsRow(P, axs, rn):
     '''Create a row of plots showing the observed, simulated, mismatch and
     optimisation progress of the magnetics data'''
-    rn = (int('Grav' in P['DataTypes'])+int('GT' in P['DataTypes']))
 
     if('ObsGrid' not in P['Mag'].keys()):
         xy_obs = np.array([P['Mag']['xObs'],P['Mag']['yObs']]).T
@@ -385,11 +398,9 @@ def PlotMagneticsRow(P, axs):
 
     norm, norm_mis = get_norm(P, datatype = 'Mag')
 
-def PlotTracerData(P, axs):
+def PlotTracerData(P, axs, rn):
     '''Create a row of plots showing the observed, simulated, mismatch and
     optimisation progress of the tracer data'''
-    rn = (int('Grav' in P['DataTypes'])+int('GT' in P['DataTypes'])+
-       int('Mag' in P['DataTypes']))
 
     # Plot observed data
     ax = axs[rn,0]
@@ -437,7 +448,7 @@ def PlotTracerData(P, axs):
     else:
         axisIdx=2        
 
-    ax = axs[3,axisIdx]
+    ax = axs[rn,axisIdx]
     index = np.arange(1, len(P['TracersConnected'])+1) 
     values=np.ones((len(P['TracersConnected']),))
     colors = [(0.4, 1, 0), (0.8, 0.8, 0.8)]
@@ -462,12 +473,9 @@ def PlotTracerData(P, axs):
     plt_optim_progress(P, ax, datatype='Tracer')
 
 
-def PlotFaultMarkers(P, axs):
+def PlotFaultMarkers(P, axs, rn):
     '''Create a row of plots showing the observed, simulated, mismatch and
     optimisation progress of the fault marker data'''
-
-    rn = (int('Grav' in P['DataTypes'])+int('GT' in P['DataTypes'])+
-       int('Mag' in P['DataTypes'])+int('Tracer' in P['DataTypes']))
 
     # 1. plot observed data
     orient='vertical'

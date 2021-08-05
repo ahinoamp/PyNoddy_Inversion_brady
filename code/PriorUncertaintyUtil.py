@@ -56,10 +56,11 @@ def add2Table(P, scenario_scalar, eventN_scalar, event_name,
     P['PropAttr']['std'] += std
 
 def add_strat_event(P):
+    
     # Event 1: stratigraphy
-    LayerNames = ['Sed', 'Mafic','Felsic',  'Intrusive']
-    LayerDensityMin = [ 2100, 2200, 2300, 2500]
-    LayerDensityMax = [ 2360, 2420, 2650,  2850]
+    LayerNames = ['TertiarySeds', 'MioceneVolc','OligoceneVolc',  'Basement']
+    LayerDensityMin = [ 2150, 2100, 2600, 2500]
+    LayerDensityMax = [ 2350, 2300, 2800,  2700]
     LayerDensityStd = [ 200, 200, 200,   200]
     nL = len(LayerNames)
     add2Table(P, 0, 1, LayerNames, ['Density']*nL, ['Gaussian']*nL, 
@@ -71,8 +72,8 @@ def add_strat_event(P):
     add2Table(P, 0, 1, LayerNames, ['MagSus']*nL, ['LogGaussian']*nL, 
               LayerMagSusMin, LayerMagSusMax, LayerMagSusStd)    
     
-    LayerThicknessMin = [100, 250, 250]
-    LayerThicknessMax = [350, 950, 950]
+    LayerThicknessMin = [200, 700, 100]
+    LayerThicknessMax = [400, 900, 400]
     LayerThickStd = [40, 50, 50]
     add2Table(P, 0, 1, LayerNames[:-1], ['Thickness']*(nL-1), ['Gaussian']*(nL-1), 
               LayerThicknessMin, LayerThicknessMax, LayerThickStd)    
@@ -148,7 +149,7 @@ def add_faulting_events(P):
     if(Scenario<1):
         FaultData = pd.read_csv('Data/Scenario'+str(Scenario)+'_Vertices.csv').sort_values(['id'])
     else:
-        FaultData = pd.read_csv('Data/BradyFaultBank_for_stochastic_points.csv').sort_values(['id'])
+        FaultData = pd.read_csv('Data/BradyFaultBank_for_stochastic_points3.csv').sort_values(['id'])
         P['Zone']=FaultData.groupby('id').agg(zone=pd.NamedAgg(column='Zone', aggfunc='first'))['zone'].values
 #        P['OrigId']=FaultData.groupby('FaultNum').agg(zone=pd.NamedAgg(column='id', aggfunc='first'))['zone'].values
         
@@ -394,28 +395,37 @@ def SelectFaultingEvents(ModelParamTable, P):
         ########ALSO Below - there is an issue of no order mixing!! of events...
         ##################################
     else:
-        ZoneDictionary = {'0': 'East', 
-                          '1': 'West'}
+        ZoneDictionary = {'0': 'MidMid', 
+                          '1': 'EastMid',
+                          '2': 'EastNorth',
+                          '3': 'MidNorth',
+                          '4': 'WestMid',
+                          '5': 'WestNorth',
+                          '6': 'WestSouth',
+                          '7': 'MidSouth',
+                          '8': 'EastSouth'}
+        
         invertedZoneDictionary = dict([[v,k] for k,v in ZoneDictionary.items()])
         
+        numZones = len(ZoneDictionary.items())
         FaultZones= P['Zone'].copy()
         P['nNonFaultingEvents']=int(np.max(ModelParamTable['EventNum']))-len(FaultZones)
         equivalentEventNumbers = np.arange(P['nNonFaultingEvents']+1, len(FaultZones)+P['nNonFaultingEvents']+1)
         IndexChoose=np.arange(1, P['nNonFaultingEvents']+1, dtype=int).tolist()
 
-        Order = np.random.permutation(2)
+        Order = np.random.permutation(numZones)
         
         i=0
         xyAcceptedPairs = []
         trickval = 0
         while (i < ScenarioNum):
             #Look at corner Order[i]
-            Zone_i = ZoneDictionary[str(Order[np.mod(i+trickval,2)])]
+            Zone_i = ZoneDictionary[str(Order[np.mod(i+trickval,numZones)])]
             #Get the groupnumbers of people in that zone
             nFaultsZone = np.sum(FaultZones==Zone_i)
             eventNinThatZone = equivalentEventNumbers[FaultZones==Zone_i]
             if(len(eventNinThatZone)==0):
-                if(trickval<2):
+                if(trickval<numZones):
                     trickval = trickval+1
                 else:
                     print('ohhh nooo...')
