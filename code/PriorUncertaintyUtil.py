@@ -59,6 +59,7 @@ def add_strat_event(P):
     
     # Event 1: stratigraphy
     LayerNames = ['TertiarySeds', 'MioceneVolc','OligoceneVolc',  'Basement']
+
     LayerDensityMin = [ 2150, 2100, 2600, 2500]
     LayerDensityMax = [ 2350, 2300, 2800,  2700]
     LayerDensityStd = [ 200, 200, 200,   200]
@@ -85,7 +86,7 @@ def add_tilt_event(P):
     TiltMin = [0, 0]
     TiltMax = [360, 3.5]
     TiltStd = [8, 0.2]
-
+    
     add2Table(P, 0, 2, ['Tilt']*len(TiltProp), TiltProp, 
               ['Gaussian']*len(TiltProp), TiltMin, TiltMax, TiltStd)    
     

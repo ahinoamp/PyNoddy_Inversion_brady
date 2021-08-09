@@ -183,7 +183,7 @@ def calc_gravity(P):
     output_name = P['output_name']
     filename = output_name+'.grv'
     GravityData = np.genfromtxt(filename, delimiter='\t', skip_header=8)
-    GravityData = GravityData[:, 0:-1]
+    GravityData = GravityData[:, 0:-1]*5
 
     simGravity = GravityData[::-1, :]
     P['Grav']['sim'] = simGravity
