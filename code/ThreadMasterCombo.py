@@ -97,7 +97,7 @@ def getHypPara():
     param = {}
     param['Name']='cubesize'
     param['Type']= 'pRandChoice'
-    param['parameters']= [100, 150]
+    param['parameters']= [100, 75]
     param['Methods']= ['MCMC', 'Annealing', 'NSGA', 'GA']
     HyperParameters.append(param)
 
@@ -496,12 +496,13 @@ if __name__ == "__main__":
         params['GeneralPerturbStrategy']='OnlyGlobal'
         params['ControlPointMovementUnits'] = 'Absolute value'
         params['errCalcMethodFaultMarker']= 'Distance'
-        params['DataTypes'] = ['Grav', 'Mag', 'Tracer', 'GT', 'FaultMarkers']
         params['JoinType']='LINES'
-        params['xy_origin']=[316448, 4379166, -2700]
-        params['xy_extent'] = [8850, 9000,3900]
-        params['DatNormCoef'] = {'Grav': 2.4, 'Tracer': 1.0, 
-                                'FaultMarkers': 500, 'GT': 315, 'Mag':300}
+        params['xy_origin']=[325233.059, 4404112, -2700]
+        params['xy_extent'] = [4950,	6150, 3900]
+        params['DataTypes'] = ['Grav', 'GT', 'MVT', 'FaultMarkers','Tracer']
+        params['ScenarioNum'] = 10
+        params['DatNormMethod'] = 'MedianInitialRounds'
+
         params['verbose']=True    
         params['graniteIdx'] = 4
         params['Windows'] = False
