@@ -71,6 +71,8 @@ def getXZPost(folder,threshold, Norm):
     #    for i in range(200):  
     postStarted = 0    
     priStarted=0
+    abc = 0
+    
     for i in range(nFiles):    
         print(i)
         file=picklefiles[i]
@@ -82,13 +84,14 @@ def getXZPost(folder,threshold, Norm):
         nFaults = dicti['nFaults']
         Err = dicti['Err']
         Err = (Err[0]/Norm['Grav'] + 
-               Err[1]/Norm['Mag'] +
+               Err[1]/Norm['MVT'] +
                Err[2]/Norm['Tracer'] +
                Err[3]/Norm['GT'] +
                Err[4]/Norm['FaultMarkers'])/5.0 
 
         print(Err)
-        if(Err<threshold):            
+        if(Err<threshold): 
+            abc = abc+1
             for d in range(len(directions)):
         
                 direction = directions[d]
@@ -106,6 +109,7 @@ def getXZPost(folder,threshold, Norm):
                                 xLargePost[direction] = np.concatenate((xLargePost[direction], x.reshape(-1,1)), axis=1)
                                 zLargePost[direction] = np.concatenate((zLargePost[direction], z.reshape(-1,1)), axis=1)
 
+    print('abc - ' + str(abc))
     return xLargePost, zLargePost
 
 plt.close('all')
@@ -115,20 +119,21 @@ Norm['Grav'] = 2.4
 Norm['Tracer'] = 1.0
 Norm['FaultMarkers'] = 500
 Norm['GT'] = 315
+Norm['MVT'] = 315
 Norm['Mag'] = 300
             
 P={}
-xy_origin=[316448, 4379166, -2700]
-xy_extent = [8850, 9035,3900]
+xy_origin = [325233.059, 4404112, -2700]
+xy_extent = [4950,	6150, 3900]
 P['xy_origin']=xy_origin
 P['xy_extent'] = xy_extent
 
-folderPri = 'PickleResults/Faults/'
-folderPost = 'Scratch2/Faults/'
+folder = 'Scratch/Faults/'
 
-xLargePost, zLargePost = getXZPost(folderPost, threshold=0.51,Norm=Norm)
+print('WTF')
+xLargePost, zLargePost = getXZPost(folder, threshold=0.75,Norm=Norm)
 
-xLargePri, zLargePri = getXZ(folderPri)
+xLargePri, zLargePri = getXZ(folder)
 
 #OneLargeDict = pd.DataFrame({'xLargePost':xLargePost, 
 #                'zLargePost':zLargePost})

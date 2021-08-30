@@ -38,7 +38,7 @@ for i in range(nFolders):
     if(len(historyfiles)<1):
         continue
 
-    kval = np.min([len(historyfiles), 3])
+    kval = np.min([len(historyfiles), 1])
         
     files2copy = random.sample(historyfiles, kval)
     bestfile = np.argmin(ErrList)

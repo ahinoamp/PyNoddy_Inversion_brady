@@ -201,9 +201,9 @@ if __name__ == "__main__":
     params = tasks.iloc[993, :]
     params = params.to_dict()
     params['Windows'] = True
-    params['npop'] = 4
-    params['ngen'] = 2
-    params['jupyter']=True
-    params['SelectionMethod'] = 'selRoulette'
-    params['DataTypes'] = ['Grav', 'Mag', 'GT', 'FaultMarkers']
+    params['xy_origin']=[325233.059, 4404112, -2700]
+    params['xy_extent'] = [4950,	6150, 3900]
+    params['DataTypes'] = ['Grav', 'GT', 'MVT', 'FaultMarkers','Tracer']
+    params['ScenarioNum'] = 10
+    params['DatNormMethod'] = 'MedianInitialRounds'
     GA_Noddy(params)

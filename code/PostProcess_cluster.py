@@ -35,7 +35,7 @@ def LoadResults(folder, DataTypes):
     NormalizingFactor['Tracer'] = 1.0
     NormalizingFactor['FaultMarkers'] = 300.
     NormalizingFactor['GT'] = 315.
-    NormalizingFactor['Mag'] = 330.
+    NormalizingFactor['MVT'] = 315.
     
     print(NormalizingFactor)
     Initialize=0
@@ -48,7 +48,9 @@ def LoadResults(folder, DataTypes):
     
         try:
             mismatchPD = pd.read_csv(threadfolder+'Mismatch.csv')
+            print('good')
         except:
+            print('bad')
             countNot= countNot+1
             continue
         
@@ -92,7 +94,12 @@ def LoadResults(folder, DataTypes):
     for dt in DataTypes:
         DTError[dt]=np.asarray(DTError[dt])[sV]
         
+    HyperParameters[['thread_num']].to_csv('huh.csv') 
+    print(RanIndexList)    
     HyperParameters=HyperParameters[HyperParameters['thread_num'].isin(RanIndexList)].reset_index(drop=True)
+    print('ran index list ' +str(len(RanIndexList)))
+    print('length of min mismatch: ' + str(len(minMismatchList)))
+    print('length of hypp: ' + str(len(HyperParameters)))
     HyperParameters['MinMismatch']=minMismatchList
     for dt in DataTypes:
         HyperParameters[dt]=DTError[dt]
@@ -106,7 +113,7 @@ def LoadResults(folder, DataTypes):
     return HyperParameters, MismatchMatrix
 
 folder= 'Combo_Scratch/'
-DataTypes = ['Grav','Mag','Tracer','GT','FaultMarkers']
+DataTypes = ['Grav','MVT','Tracer','GT','FaultMarkers']
 
 HyperParameters, MismatchMatrix = LoadResults(folder, DataTypes)
 
@@ -119,7 +126,7 @@ NumbersTreatCategorical= ['OptimMethod', 'ScenarioNum', 'GeneralPerturbStrategy'
                   'ErrorNorm', 'errCalcMethodFaultIntersection', 'LocalWeightsMode',
                   'SelectionMethod', 'MatingMethodLocal','MatingMethodGlobal', 'MO_WeightingMethod']
 
-NotHyperParameters= ['Grav', 'Mag', 'Tracer', 'GT', 'FaultMarkers', 'MinMismatch', 'thread_num',
+NotHyperParameters= ['Grav', 'Mag', 'Tracer', 'GT', 'MVT', 'FaultMarkers', 'MinMismatch', 'thread_num',
                      'Toy', 'verbose', 'OutputImageFreq', 'BaseFolder', 'DatNormCoef']
 QuantVariables = []
 CatagoricalVars = []

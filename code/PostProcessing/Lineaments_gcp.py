@@ -15,7 +15,6 @@ import numpy as np
 from sklearn.decomposition import PCA
 from scipy import interpolate
 from scipy.signal import savgol_filter
-import from glob import glob
 
 from deap import base
 
@@ -163,17 +162,16 @@ def flipdict(dict2flip):
     return flippedDict
 
 def create_lineaments2(values):
-    folder = 'Scratch2/'
+    folder = 'Scratch/'
 
     run_n = values['run_n']
     
     HypPara={}
     HypPara['thread_num']=run_n
-    HypPara['DataTypes'] = ['Grav', 'Mag', 'Tracer', 'GT', 'FaultMarkers']
     HypPara['JoinType']='LINES'
     HypPara['errCalcMethodFaultIntersection']='Distance'
     HypPara['MaxFaultMarkerError'] = 525
-    HypPara['BaseFolder']='PriorFalsificationResults/'
+    HypPara['BaseFolder']='Scratch2/'
     HypPara['output_name'] = HypPara['BaseFolder']+'noddy_out'
     HypPara['iterationNum'] =0
         
@@ -184,10 +182,10 @@ def create_lineaments2(values):
     HypPara['xy_origin']=[316448, 4379166, -2700]
     HypPara['xy_extent'] = [8850, 9000,3900]
     HypPara['DatNormCoef'] = {'Grav': 2.4, 'Tracer': 1.0, 
-                            'FaultMarkers': 500, 'GT': 315, 'Mag':300}
+                            'FaultMarkers': 500, 'GT': 315, 'MVT':315}
     HypPara['verbose']=True    
     HypPara['graniteIdx'] = 4
-    HypPara['Windows'] = True
+    HypPara['Windows'] = False
     
     HypPara['verbose']=True     
     HypPara['SimulationShiftType']='Median Datum Shift'
@@ -218,6 +216,15 @@ def create_lineaments2(values):
     HypPara['UpdateLocalWeightsFreqRuleBased']=random.uniform(1, 40)
     HypPara['verbose']=True    
     HypPara['MO_WeightingMethod']='Equal'    
+
+    HypPara['xy_origin']=[325233.059, 4404112, -2700]
+    HypPara['xy_extent'] = [4950,	6150, 3900]
+    HypPara['DataTypes'] = ['Grav', 'GT', 'MVT', 'FaultMarkers','Tracer']
+    HypPara['ScenarioNum'] = 10
+    HypPara['DatNormMethod'] = 'MedianInitialRounds'
+    HypPara['SlipParam'] = 0.1
+    HypPara['cubesize'] = 100
+
     ##############################
     ## Setup the folders
     ##############################
@@ -244,7 +251,7 @@ def create_lineaments2(values):
 
     #    Err = GetErrFromFile(hisfile)
     Err = [P['Grav']['L1MismatchList'][-1],
-           P['Mag']['L1MismatchList'][-1],
+           P['MVT']['L1MismatchList'][-1],
            P['Tracer']['L1MismatchList'][-1],
            P['GT']['L1MismatchList'][-1],
            P['FaultMarkers']['L1MismatchList'][-1]]
@@ -284,6 +291,6 @@ def create_lineaments2(values):
 #        print('theres a problem in the air tonight')
     
 if __name__== "__main__":
-    params = {'run_n': 4458, 'hisfile': 'faultmodel.his'}
+    params = {'run_n': 4, 'hisfile': 'faultmodel.his'}
 
     create_lineaments2(params)

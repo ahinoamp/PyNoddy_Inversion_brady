@@ -13,7 +13,7 @@ import random
 import multiprocessing
 import numpy as np
 import sys
-import Lineaments_gcp_notracer as prior_gen
+import Lineaments_gcp as prior_gen
 from glob import glob
 
 

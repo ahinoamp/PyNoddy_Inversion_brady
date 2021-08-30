@@ -12,8 +12,8 @@ from matplotlib.lines import Line2D
 plt.close('all')
 
 P={}
-xy_origin=[316448, 4379166, -2700]
-xy_extent = [8850, 9035,3900]
+xy_origin=[325233.059, 4404112, -2700]
+xy_extent = [4950,	6150, 3900]
 P['xy_origin']=xy_origin
 P['xy_extent'] = xy_extent
 
@@ -23,7 +23,7 @@ zsection = 0
 
 fz = 18
 
-directions = ['Z']
+directions = ['X', 'Y', 'Z']
 
 OneLargeDict = pd.read_pickle('PosteriorFaultLineaments.pkl')
 xPriorL = OneLargeDict['xLargePri']
@@ -91,7 +91,7 @@ for d in range(len(directions)):
         custom_lines = [Line2D([0], [0], color=colors[i], lw=4) for i in range(len(listLines))]   
         ax.legend(custom_lines, listLines, bbox_to_anchor=(1.02,1.02), loc="upper left", fontsize=11)
 
-    if(direction!='X'):
-        ax.set_xticks([317000, 319000, 321000, 323000, 325000])
+#    if(direction!='X'):
+#        ax.set_xticks([317000, 319000, 321000, 323000, 325000])
     
     fig.savefig('hope'+direction+'.png', dpi = 300,bbox_inches="tight")

@@ -491,9 +491,9 @@ def SelectFaultingEvents(ModelParamTable, P):
 
 def checkLineOverlap(truexyproposed, xyAcceptedPairs):
     accepted = 1
-    polygonProposed = LineString(truexyproposed).buffer(175)
+    polygonProposed = LineString(truexyproposed).buffer(50)
     for i in range(len(xyAcceptedPairs)):
-        polygon_i = LineString(xyAcceptedPairs[i]).buffer(175)
+        polygon_i = LineString(xyAcceptedPairs[i]).buffer(50)
         overlap1 = polygonProposed.intersection(polygon_i).area / polygonProposed.area
         overlap2 = polygonProposed.intersection(polygon_i).area / polygon_i.area
         if((overlap1>0.25)|(overlap2>0.25)):

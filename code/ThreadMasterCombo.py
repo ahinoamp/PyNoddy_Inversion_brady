@@ -464,10 +464,10 @@ if __name__ == "__main__":
       
   
     #sample the realizations
-    num_threads =  25
+    num_threads =  1000
     OutputImageFreq = 15
     tasks = []
-    num_gpus = 16
+    num_gpus = 32
     
     HypPara = getHypPara()
     

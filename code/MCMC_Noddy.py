@@ -146,7 +146,8 @@ if __name__== "__main__":
     params['DataTypes'] = ['Grav', 'GT', 'MVT', 'FaultMarkers','Tracer']
     params['ScenarioNum'] = 10
     params['DatNormMethod'] = 'MedianInitialRounds'
-    params['SlipParam'] = 0.2
+    params['SlipParam'] = 0.1
+    params['cubesize'] = 75
 
     MCMC_Noddy(params)
     

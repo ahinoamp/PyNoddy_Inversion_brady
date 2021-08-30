@@ -33,7 +33,7 @@ def CreatePyNoddyTemplateGivenParameterTablePatua(P,ModelParamTable):
     CreatePyNoddyTemplate(filename, P, nLayers = 4, nFaults = nFaults, faultnames = faultnames,
                           FaultPoints = FaultPoints, 
                           LayerNames = ['Basement', 'OligoceneVolc', 'MioceneVolc', 'TertiarySeds'], 
-                          origin=[0,0,4000], extent=P['HypP']['xy_extent'])
+                          origin=[0,0,3900], extent=P['HypP']['xy_extent'])
     
     # Find the non changing parameters (with low standard deviation)
     # and replace those files in the template
@@ -274,7 +274,7 @@ def replace(string, substitutions):
 def CreatePyNoddyTemplate(filename, P, nLayers = 4, nFaults = 5, faultnames =['f0', 'f1', 'f2', 'f3', 'f4', 'f5'],
                           FaultPoints = [3,5,6,23,19],
                           LayerNames = ['Intrusive', 'Felsic', 'Mafic', 'Sed'], 
-                          origin = [0,0,4000], extent=[9000,9000,4000]):
+                          origin = [0,0,3900], extent=[9000,9000,4000]):
     
     nEvents = nFaults + P['nNonFaultingEvents']
     

@@ -327,14 +327,15 @@ def plot_3d_model(modelfile, cubesize, plot, xy_origin = [316448, 4379166, -2700
 
     points = CalculatePlotStructure(modelfile, plot, cubesize = cubesize, xy_origin=xy_origin, Windows=Windows)
     
+if __name__== "__main__":
 
-# best_model_file = 'C:/Users/ahino/Documents/GitHub/PyNoddy_Inversion_brady/code/Combo_Scratch/Thread0/HistoryFileInspection/His_0_G_215_Err_554.his'
-# xy_origin = [325233.059, 4404112, -2700]
-
-# vtkP.settings.embedWindow('k3d') #you can also choose to change to itkwidgets, k3d
-
-# cubesize = 100
-# plot = vtkP.Plotter(axes=1, bg='white', interactive=1)
-# plot_3d_model(best_model_file, cubesize, plot, xy_origin, Windows=True)
-# plot.show(viewup='z')
-
+    best_model_file = 'bad_test.his'
+    xy_origin = [325233.059, 4404112, -2700]
+    
+    vtkP.settings.embedWindow('k3d') #you can also choose to change to itkwidgets, k3d
+    
+    cubesize = 75
+    plot = vtkP.Plotter(axes=1, bg='white', interactive=1)
+    plot_3d_model(best_model_file, cubesize, plot, xy_origin, Windows=True)
+    plot.show(viewup='z')
+    
