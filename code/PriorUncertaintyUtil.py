@@ -60,9 +60,9 @@ def add_strat_event(P):
     # Event 1: stratigraphy
     LayerNames = ['TertiarySeds', 'MioceneVolc','OligoceneVolc',  'Basement']
 
-    LayerDensityMin = [ 2150, 2100, 2600, 2500]
-    LayerDensityMax = [ 2350, 2300, 2800,  2700]
-    LayerDensityStd = [ 200, 200, 200,   200]
+    LayerDensityMin = [ 2.150, 2.100, 2.600, 2.500]
+    LayerDensityMax = [ 2.350, 2.300, 2.800,  2.700]
+    LayerDensityStd = [ 2.00, 2.00, 2.00,   2.00]
     nL = len(LayerNames)
     add2Table(P, 0, 1, LayerNames, ['Density']*nL, ['Gaussian']*nL, 
               LayerDensityMin, LayerDensityMax, LayerDensityStd)    
@@ -368,7 +368,7 @@ def SetUpFaultRepresentation(Data, xy_origin, SlipParam=0.04, nPointsDivideList=
         fault_params['PtY'].append(newY)
         fault_params['X'].append(meanX)
         fault_params['Y'].append(meanY)
-        fault_params['Z'].append(random.uniform(500,5000))
+        fault_params['Z'].append(random.uniform(500,4000))
         fault_params['XAxis'].append(lengthFault/2)
         fault_params['ZAxis'].append(lengthFault/2)
         fault_params['YAxis'].append(lengthFault/2)

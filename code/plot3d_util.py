@@ -9,6 +9,8 @@ import SimulationUtilities as sim
 from glob import glob
 from scipy import interpolate
 import vedo as vtkP
+from scipy.spatial import Delaunay
+
 
 def getDXF_parsed_structure(output_name):
     filename = output_name + '.dxf'
@@ -201,6 +203,7 @@ def CalculatePlotStructure(modelfile, plot, cubesize = 250,
     #Calculate the model
     start = time.time()
     sim.calculate_model(modelfile, output_name, outputoption, Windows=Windows)
+    sim.calculate_model(modelfile, output_name, 'TOPOLOGY', Windows=Windows)
     end = time.time()
     print('Calculation time took '+str(end - start) + ' seconds')
 
@@ -319,7 +322,62 @@ def CalculatePlotStructure(modelfile, plot, cubesize = 250,
                                  P[dt_name]['Obs'].reshape((-1,1))), axis=1)
         mvt_obs_viz = vtkP.Points(MVT_pts_obs, c="k", r=60)
         mvt_obs_viz.name = 'observed miocene volcanic top'
-        plot += mvt_obs_viz.flag()        
+        plot += mvt_obs_viz.flag()      
+        
+        # fault markers
+        P['DataTypes'] = ['FaultMarkers']
+        P['FaultMarkers'] = {}
+        FaultMarkers= pd.read_csv('Data/BradyWellsFaults.csv')
+        FaultMarkers['wellid'] = FaultMarkers.groupby(['WellName']).ngroup()
+        P['FaultMarkers']['Obs'] = FaultMarkers
+        P['HypP']={}
+        P['iterationNum']=0
+        P['HypP']['MaxFaultMarkerError'] = 550
+        WellPathsOrig = pd.read_csv('Data/AllBrady3DWells.csv')
+        Wellnames = WellPathsOrig['WellName']
+        FaultMarkerWells = np.unique(P['FaultMarkers']['Obs']['WellName'])
+        filterWells = np.isin(Wellnames, FaultMarkerWells)
+        WellPathsTracers = WellPathsOrig[filterWells]
+        nWells=len(FaultMarkerWells)
+        zWells = np.zeros((nWells,2))
+        idWells = np.zeros((nWells,2))
+        topXWell = np.zeros((nWells,))
+        topYWell = np.zeros((nWells,))
+        idPlotWell = np.zeros((nWells,), dtype=int)
+    
+        WellsAtMaxZ = WellPathsTracers[WellPathsTracers['Zm'] == WellPathsTracers.groupby('WellName')['Zm'].transform('max')]
+    
+        for i in range(nWells):
+            filterWell = WellPathsTracers['WellName']==FaultMarkerWells[i]
+            z = WellPathsTracers.loc[filterWell, 'Zm']
+            zWells[i, 0] = np.min(z)
+            zWells[i, 1] = np.max(z)
+            idWells[i,:] = i
+     
+            filterMaxTable = WellsAtMaxZ['WellName']==FaultMarkerWells[i]
+            topXWell[i] = WellsAtMaxZ.loc[filterMaxTable, 'Xm'].values[0]
+            topYWell[i] = WellsAtMaxZ.loc[filterMaxTable, 'Ym'].values[0]
+            idPlotWell[i] = i
+            
+        P['FaultMarkers']['WellData'] =  WellPathsTracers[WellPathsTracers['Zm']<1200].copy(deep=True)
+        P['FaultMarkers']['WellData']['id'] = P['FaultMarkers']['WellData'].groupby(['WellName']).ngroup()
+    
+        P['zWells'] = zWells.T
+        P['idWells'] = idWells.T
+        P['topXWell'] = topXWell.T
+        P['topYWell'] = topYWell.T
+        P['idPlotWell'] = idPlotWell.T
+    
+        P['FaultMarkers']['nObsPoints'] = len(P['FaultMarkers']['Obs'])
+        P['FaultMarkers']['xObs'] = P['FaultMarkers']['Obs']['X']
+        P['FaultMarkers']['yObs'] = P['FaultMarkers']['Obs']['Y']
+        sim.calc_fault_markers(P)
+        fault_markers = np.concatenate((np.asarray(P['FaultMarkers']['simX']).reshape((-1,1)), 
+                              np.asarray(P['FaultMarkers']['simY']).reshape((-1,1)), 
+                              np.asarray(P['FaultMarkers']['simZ']).reshape((-1,1))), axis=1)
+        fault_markers_viz = vtkP.Points(fault_markers, c="o", r=60)
+        fault_markers_viz.name = 'simulated fault markers'
+        plot += fault_markers_viz.flag()
         
     return points
 
@@ -329,13 +387,67 @@ def plot_3d_model(modelfile, cubesize, plot, xy_origin = [316448, 4379166, -2700
     
 if __name__== "__main__":
 
-    best_model_file = 'bad_test.his'
-    xy_origin = [325233.059, 4404112, -2700]
     
+    best_model_file = 'try2.his'
+    xy_origin = [325233.059, 4404112, -2700]
+    xy_extent = [4950, 6150, 3900]
+
+        
     vtkP.settings.embedWindow('k3d') #you can also choose to change to itkwidgets, k3d
     
-    cubesize = 75
+    cubesize = 100
+    if(cubesize==100):
+        xy_extent = [5000,	6200, 3900]
+    else:
+        xy_extent = [4950,	6150, 3900]
+        
     plot = vtkP.Plotter(axes=1, bg='white', interactive=1)
     plot_3d_model(best_model_file, cubesize, plot, xy_origin, Windows=True)
+
+    # add topography
+    ##################
+    # perform a 2D Delaunay triangulation to get the cells from the point cloud
+    landSurfacePD = pd.read_csv("Data/BradysDEM.csv")
+    filterLimits =  ((landSurfacePD['x']>xy_origin[0]) & 
+                     (landSurfacePD['y']>xy_origin[1])   
+                     & (landSurfacePD['x']<(xy_origin[0]+xy_extent[0])) 
+                     & (landSurfacePD['y']<(xy_origin[1]+xy_extent[1]))) 
+    landSurfacePD = landSurfacePD[filterLimits]
+    landSurfacePD = landSurfacePD[['x', 'y', 'z']].values
+    tri = Delaunay(landSurfacePD[:, 0:2])
+    
+    # create a mesh object for the land surface
+    landSurface = vtkP.Mesh([landSurfacePD, tri.simplices])
+    
+    # in order to color it by the elevation, we use the z values of the mesh
+    zvals = landSurface.points()[:, 2]
+    landSurface.pointColors(zvals, cmap="terrain", vmin=1000)
+    landSurface.name = "Land Surface" # give the object a name
+    
+    plot+=landSurface
+
+    # add fault markers
+    ###########################
+    ObsFaultMarkers = pd.read_csv('Data/BradyWellsFaults.csv')
+    fault_markers = np.concatenate((ObsFaultMarkers['X'].values.reshape((-1,1)), 
+                              ObsFaultMarkers['Y'].values.reshape((-1,1)), 
+                              ObsFaultMarkers['Z'].values.reshape((-1,1))), axis=1)
+    #P[dt_name]['xObs'], P[dt_name]['yObs']        
+    fault_markers_viz = vtkP.Points(fault_markers, c="b", r=60)
+    fault_markers_viz.name = 'observed fault markers'
+    plot += fault_markers_viz.flag()
+        
+    # add wellbores
+    ###########################
+    wells = pd.read_csv('Data/AllBrady3DWells.csv')
+    well_names = pd.unique(wells['WellName'])
+    for wn in well_names:
+        filterWN = wells['WellName']==wn
+        well = wells[filterWN]
+        well=well[['Xm', 'Ym', 'Zm']].values
+        Well = vtkP.Line(well).color('red').lw(2)
+        Well.name = wn
+        plot += Well.flag()
+
     plot.show(viewup='z')
     

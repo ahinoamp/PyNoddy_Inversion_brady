@@ -571,7 +571,7 @@ Version = 7.11"""
     Chair_Z    = 2500.00
 
 #GeophysicsOptions
-    GPSRange     = 1200
+    GPSRange     = 600
 	Declination	=  13.20
 	Inclination	=  63.40
 	Intensity	= 49605.00
@@ -610,7 +610,7 @@ Version = 7.11"""
     Fill Type    = 2
 
 #ProjectOptions
-    Susceptibility Units    = SI
+    Susceptibility Units    = CGS
     Geophysical Calculation    = 2
     Calculation Type    = LOCAL_JOB
     Length Scale    = 0

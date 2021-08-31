@@ -94,6 +94,10 @@ def MCMC_Noddy(HypPara):
 
         if(np.mod((P['iterationNum']),P['HypP']['OutputImageFreq'])==0):
             GI.OutputImageAndHisFile(P)
+        else:
+            MismatchList = GI.get_combo_err_list(P)
+            if(MismatchList[-1]<=np.min(MismatchList)):
+                GI.OutputImageAndHisFile(P)
 
         #############################
         ## 3.3 Check whether to stop early
@@ -137,18 +141,23 @@ if __name__== "__main__":
     tasks = pd.read_pickle('Combo_Scratch/parameters.pkl')
     params = tasks.iloc[91, :]
     params = params.to_dict()
-    params['OutputImageFreq']=15
+    params['OutputImageFreq']=2
     params['verbose']=True    
     params['Windows'] = True
     params['jupyter'] = False
     params['xy_origin']=[325233.059, 4404112, -2700]
     params['xy_extent'] = [4950,	6150, 3900]
+    params['cubesize'] = 100
+    if(params['cubesize']==100):
+        params['xy_extent'] = [5000,	6200, 3900]
+    else:
+        params['xy_extent'] = [4950,	6150, 3900]
+        
     params['DataTypes'] = ['Grav', 'GT', 'MVT', 'FaultMarkers','Tracer']
     params['ScenarioNum'] = 10
     params['DatNormMethod'] = 'MedianInitialRounds'
     params['SlipParam'] = 0.1
-    params['cubesize'] = 75
-
+    params['SimulationShiftType']='Standardize Shift'
     MCMC_Noddy(params)
     
     end = time.time()

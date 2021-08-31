@@ -116,6 +116,8 @@ def register_sim_functions(P, toolbox):
         toolbox.register("shift_geophys", sim.const_shift)
     elif(P['SimulationShiftType'] == 'Median Const Datum Shift'):
         toolbox.register("shift_geophys", sim.median_const_shift)
+    elif(P['SimulationShiftType'] == 'Standardize Shift'):
+        toolbox.register("shift_geophys", sim.standardize_shift)
     else:
         toolbox.register("shift_geophys", sim.no_shift)
         

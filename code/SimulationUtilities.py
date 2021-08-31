@@ -183,7 +183,7 @@ def calc_gravity(P):
     output_name = P['output_name']
     filename = output_name+'.grv'
     GravityData = np.genfromtxt(filename, delimiter='\t', skip_header=8)
-    GravityData = GravityData[:, 0:-1]*5
+    GravityData = GravityData[:, 0:-1]*10.0
 
     simGravity = GravityData[::-1, :]
     P['Grav']['sim'] = simGravity
@@ -218,6 +218,16 @@ def median_shift(P, sim, datatype='Grav'):
     P[datatype]['simViz']=P[datatype]['sim'] - med_sim + P[datatype]['medianObs']
     
     return sim
+
+def standardize_shift(P, sim, datatype='Grav'):
+    '''Center the simulated data around the observed median data'''
+    med_sim = np.mean(sim)
+    std_sim = np.std(sim)
+    sim2 = ((sim-med_sim)/std_sim)*P[datatype]['stdObs'] + P[datatype]['medianObs']
+    P[datatype]['simViz']=(((P[datatype]['sim'] - med_sim)/std_sim)*P[datatype]['stdObs']
+                            + P[datatype]['medianObs'])
+    
+    return sim2
 
 def median_const_shift(P, sim, datatype='Grav'):
     '''Center the simulated data around the observed median data'''
@@ -488,7 +498,8 @@ def getWellPathIndices(P):
         zLithOrigin = P['zmin']+P['zminL']
         xIdx = np.floor((x-xLithOrigin)/P['cubesize']).astype(int)
         yIdx = np.floor((y-yLithOrigin)/P['cubesize']).astype(int)
-        zIdx = np.floor((zLithOrigin-z)/P['cubesize']).astype(int)
+        zIdx = np.floor((P['zmax']-z)/P['cubesize']).astype(int)
+        
         Idx = (xIdx, yIdx, zIdx)
         wellBlockIndices[welli] = Idx
     return wellBlockIndices
